@@ -1,0 +1,95 @@
+/* --- ESTÉTICA DE ACCIONES Y MODALES --- */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(97, 106, 107, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+}
+
+.action-modal-box {
+  background: #0a0a0a;
+  border: 1px solid var(--border-glow);
+  padding: 40px;
+  width: 500px;
+  max-width: 95%;
+  position: relative;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 1), 0 0 20px var(--accent-glow);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 15px;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+  color: var(--text-bright);
+  letter-spacing: 2px;
+}
+
+.btn-close-action {
+  background: transparent;
+  border: 1px solid var(--border-glow);
+  padding: 5px 12px;
+  color: #444;
+  cursor: pointer;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.btn-close-action:hover {
+  border-color: var(--priority-urgent);
+  color: var(--priority-urgent);
+}
+
+.action-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+select.form-input {
+  appearance: none; /* Elimina la flecha por defecto del sistema */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4ff00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+
+select.form-input option {
+  background: #111; 
+  color: var(--accent);
+  padding: 10px;
+}
+
+
+@keyframes fadeInSelect {
+  from { 
+    opacity: 0; 
+    transform: translateY(-5px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.form-group-dynamic {
+  animation: fadeInSelect 0.3s ease-out;
+}
+
