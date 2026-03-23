@@ -3,7 +3,6 @@ import '../index.css';
 
 const NeedsManager = ({ needs, personnel, onAddStaff, onRemoveStaff, onDeleteNeed }) => {
   const [removingId, setRemovingId] = useState(null);
-  // 1. Necesitamos un estado local para el input de texto del nuevo personal
   const [staffName, setStaffName] = useState('');
 
   const handleResolve = (id) => {
@@ -17,7 +16,7 @@ const NeedsManager = ({ needs, personnel, onAddStaff, onRemoveStaff, onDeleteNee
   const handleAddClick = () => {
     if (staffName.trim()) {
       onAddStaff(staffName.toUpperCase());
-      setStaffName(''); // Limpiar input tras añadir
+      setStaffName('');
     }
   };
 
@@ -48,7 +47,6 @@ const NeedsManager = ({ needs, personnel, onAddStaff, onRemoveStaff, onDeleteNee
         <h3 className="task-section-title">DE EQUIPO</h3>
         <div className="staff-split-layout">
           
-          {/* 2. RELLENAMOS EL SIDEBAR (Cuerpo de personal) */}
           <aside className="staff-sidebar">
             <h4 className="staff-sidebar-title">EQUIPO</h4>
             

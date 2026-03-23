@@ -10,8 +10,6 @@ const TrashIcon = () => (
 
 const TaskManager = ({ tasks, onToggleComplete, onArchive }) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
-
-  /*Gestión de completar con nota de resolución, se añade o de quita*/
     const handleCheckClick = (task) => {
     if (task.completed) {
       onToggleComplete(task.id, ""); 

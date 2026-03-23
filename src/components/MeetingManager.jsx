@@ -1,7 +1,6 @@
-import React from 'react';
 import '../index.css'
 
-const MeetingManager = ({ meetings, onUpdatePoints, onAddSlot, onUpdateSlot, onUpdateNotes, onDelete }) => {
+const MeetingManager = ({ meetings, onUpdatePoints, onAddSlot, onUpdateSlot, onDelete, onSync }) => {
   const sortedMeetings = [...meetings].sort((a, b) => new Date(a.date) - new Date(b.date));
 
   return (
@@ -30,12 +29,14 @@ const MeetingManager = ({ meetings, onUpdatePoints, onAddSlot, onUpdateSlot, onU
                   placeholder="Punto a tratar..."
                   value={slot.point}
                   onChange={(e) => onUpdateSlot(mtg.id, slot.id, 'point', e.target.value)}
+                  onBlur={() => onSync(mtg.id)}
                 />
                 <input
                   className="mtg-line-input highlight-input"
                   placeholder="Conclusión..."
                   value={slot.conclusion}
                   onChange={(e) => onUpdateSlot(mtg.id, slot.id, 'conclusion', e.target.value)}
+                  onBlur={() => onSync(mtg.id)}
                 />
               </div>
             ))}
@@ -49,9 +50,10 @@ const MeetingManager = ({ meetings, onUpdatePoints, onAddSlot, onUpdateSlot, onU
             <label className="form-label">AGENDA Y PUNTOS DE SEGUIMIENTO</label>
             <textarea
               className="mtg-textarea"
-              placeholder="WRITE_POINTS_HERE (DASHES FOR LISTS)..."
-              value={mtg.points}
+              placeholder="Escribe los detalles..."
+              value={mtg.points || ''}
               onChange={(e) => onUpdatePoints(mtg.id, e.target.value)}
+              onBlur={() => onSync(mtg.id)}
             />
           </div>
         </div>
