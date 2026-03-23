@@ -1,5 +1,5 @@
 import './index.css'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from './components/Login';
 import TaskManager from './components/TaskManager';
 import TaskModal from './action_components/TaskModal';
@@ -70,22 +70,22 @@ const ActionToolbar = ({ section, onOpenTaskModal, onOpenNeedModal, onOpenBlocke
 };
 
 function App() {
+  /*Esquema de datos*/
+const TASK_SCHEMA = { id: '', desc: '', notes: '', date: '', priority: '', type: '', completed: false };
+const NEED_SCHEMA = { id: '', desc: '', category: '', type: '' };
+const BLOCKER_SCHEMA = { id: '', desc: '', category: '', severity: '', owner: '', status: 'open' };
+const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
+
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
   const [activeSection, setActiveSection] = useState('DASHBOARD');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [tasks, setTasks] = useState([{ id: 'T-001', desc: 'Arranque de sistema Aral', notes:'', date: '2026-02-14', priority: 'media', type: 'interna' }]);
+  const [tasks, setTasks] = useState([]);
   const [isNeedModalOpen, setIsNeedModalOpen] = useState(false);
   const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false);
-  const [needs, setNeeds] = useState([
-  { id: 'REQ-001', content: 'ACTUALIZACIÓN DE PROTOCOLOS DE ENCRIPTADO', tag: 'SEGURIDAD', type: 'general' },
-  { id: 'REQ-002', content: 'REEMPLAZO DE UNIDADES DE ESTADO SÓLIDO EN SERVIDOR_04', tag: 'HARDWARE', type: 'general' },
-  { id: 'STF-001', content: 'CAPACITACIÓN EN SISTEMAS DE RESPUESTA RÁPIDA', tag: 'PERSONAL', type: 'staff' }
-  ]);
-  const [personnel, setPersonnel] = useState(['OPERADOR_ALPHA', 'ANALISTA_BRAVO', 'TECNICO_GAMMA']);
-  const [blockers, setBlockers] = useState([
-  { id: 'INF-01', content: 'TIMEOUT EN ENTORNO DE PRE-PRODUCCIÓN', category: 'INFRA', severity: 'HIGH' },
-  { id: 'CLI-01', content: 'RETRASO EN FIRMA DE ACCESOS VPN', category: 'CLIENT', severity: 'CRITICAL' }
-  ]);
+  const [needs, setNeeds] = useState([]);
+  const [personnel, setPersonnel] = useState([]);
+  const [blockers, setBlockers] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
 
@@ -96,22 +96,54 @@ function App() {
   const newTask = {
     ...newRow,
     id: `${prefix}-${Math.floor(Math.random() * 900) + 100}`,
+    userId: currentUser.id, // <--- AÑADIDO
     completed: false, 
     archived: false   
   };
-  setTasks([...tasks, newTask]);
+
+  setTasks(prev => [...prev, newTask]);
+  setIsTaskModalOpen(false);
+
+  fetch('/api/add-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newTask),
+  }).catch(error => console.error(error));
 };
 
-const toggleCompleteTask = (id, notes) => {
-  setTasks(tasks.map(t => {
-    if (t.id === id) {
-      if (t.completed) {
-        return { ...t, completed: false, notes: "" }; 
-      } 
-      return { ...t, completed: true, notes: notes };
-    }
-    return t;
-  }));
+const archiveTask = (id) => {
+  if (!window.confirm("¿Seguro que quieres archivar esta tarea?")) return;
+  setTasks(prev => prev.map(t => t.id === id ? { ...t, archived: true } : t));
+
+  fetch('/api/update-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, userId: currentUser.id, archived: true }), // <--- AÑADIDO userId
+  });
+};
+
+const toggleCompleteTask = (id, notes = "") => {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+
+  const newCompletedStatus = !task.completed;
+  const finalNotes = newCompletedStatus ? notes : "";
+
+  setTasks(prev => prev.map(t => 
+    t.id === id ? { ...t, completed: newCompletedStatus, notes: finalNotes } : t
+  ));
+
+  fetch('/api/update-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      id, 
+      completed: newCompletedStatus, 
+      notes: finalNotes 
+    }),
+  }).catch(error => {
+    console.error("Error al actualizar estado en Frankfurt:", error);
+  });
 };
 
 const reopenTask = (id) => {
@@ -120,78 +152,164 @@ const reopenTask = (id) => {
   ));
 };
 
-const archiveTask = (id) => {
-  setTasks(tasks.map(t => 
-    t.id === id ? { ...t, archived: true } : t
-  ));
+const handleLogin = (userId, username) => {
+  setCurrentUser({ id: userId, name: username });
+  setIsLogged(true);
+  
+  localStorage.setItem('aral_session', JSON.stringify({ id: userId, name: username }));
 };
 
-  const handleLogin = (u, p) => {
-    if (u === 'admin' && p === '1234') setIsLogged(true);
-  };
-
 const addStaff = (name) => {
-  if (name && !personnel.includes(name.toUpperCase())) {
-    setPersonnel([...personnel, name.toUpperCase()]);
+  const upperName = name.toUpperCase();
+  if (upperName && !personnel.includes(upperName)) {
+    setPersonnel(prev => [...prev, upperName]);
+
+    fetch('/api/manage-staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: upperName, userId: currentUser.id, action: 'ADD' }),
+    });
   }
 };
 
 const removeStaff = (name) => {
-  setPersonnel(personnel.filter(p => p !== name));
-};
+  setPersonnel(prev => prev.filter(p => p !== name));
 
-const addNeed = (newNeedData) => {
-  const newEntry = {
-    ...newNeedData,
-    id: newNeedData.type === 'general' ? `REQ-${Date.now().toString().slice(-3)}` : `STF-${Date.now().toString().slice(-3)}`
-  };
-  setNeeds([...needs, newEntry]);
-  setIsNeedModalOpen(false);
-};
-
-const deleteNeed = (id) => {
-  setNeeds(prevNeeds => {
-    return prevNeeds.filter(need => need.id !== id);
+  fetch('/api/manage-staff', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, action: 'DELETE' }),
+  }).catch(error => {
+    console.error("Error al eliminar personal en Frankfurt:", error);
   });
 };
 
+const addNeed = (newNeedData) => {
+  const newId = `${newNeedData.type === 'general' ? 'REQ' : 'STF'}-${Date.now().toString().slice(-3)}`;
+  const fullNeed = { ...newNeedData, id: newId, userId: currentUser.id }; // <--- AÑADIDO
+
+  setNeeds(prev => [...prev, fullNeed]);
+  setIsNeedModalOpen(false);
+
+  fetch('/api/add-need', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullNeed),
+  });
+};
+
+const deleteNeed = (id) => {
+  // UI Instantánea (dispara la animación de salida en el componente)
+  setNeeds(prev => prev.filter(need => need.id !== id));
+
+  // Persistencia de fondo
+  fetch('/api/delete-need', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  });
+};
+
+const addBlocker = (newBlockerData) => {
+  const newId = `BLK-${Date.now().toString().slice(-3)}`;
+  const fullBlocker = { ...newBlockerData, id: newId, userId: currentUser.id};
+
+  setBlockers(prev => [...prev, fullBlocker]);
+  setIsBlockerModalOpen(false);
+
+  fetch('/api/add-blocker', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullBlocker),
+  }).catch(error => {
+    console.error("Error en el guardado de fondo:", error);
+  });
+};
 
 const deleteBlocker = (id) => {
   setBlockers(prev => prev.filter(b => b.id !== id));
-};
 
-const addBlocker = (data) => {
-  const newBlocker = {
-    ...data,
-    id: `${data.category === 'INFRA' ? 'INF' : 'CLI'}-${Math.floor(Math.random() * 900 + 100)}`
-  };
-  setBlockers(prev => [...prev, newBlocker]);
+  fetch('/api/delete-blocker', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id }),
+  }).catch(error => {
+    console.error("Error al borrar de fondo:", error);
+  });
 };
 
 /*reuniones*/
 
-const addMeeting = (data) => {
-  const newMtg = {
-    id: `MTG-${Date.now().toString().slice(-4)}`,
-    title: data.title,
-    date: data.date,
-    slots: [{ id: Date.now(), point: '', conclusion: '' }],
-    notes: "",
+const addMeeting = (newMtg) => {
+  const fullMtg = { 
+    ...newMtg, 
+    id: `MTG-${Date.now().toString().slice(-3)}`, 
+    userId: currentUser.id, 
+    slots: [] 
   };
-  setMeetings(prev => [newMtg, ...prev]);
-  setIsMeetingModalOpen(false); 
+
+  setMeetings(prev => [...prev, fullMtg]);
+  fetch('/api/add-meeting', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullMtg),
+  }).catch(error => {
+    console.error("Error al guardar reunión en Frankfurt:", error);
+  });
+};
+
+const deleteMeeting = (id) => {
+  setMeetings(prev => prev.filter(m => m.id !== id));
+  fetch('/api/delete-meeting', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, userId: currentUser.id }), // <--- AÑADIDO
+  });
+};
+
+const syncMeetingState = async (updatedMeetings, meetingId) => {
+  const meetingToSync = updatedMeetings.find(m => m.id === meetingId);
+  if (meetingToSync) {
+    try {
+      await fetch('/api/update-meeting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...meetingToSync, userId: currentUser.id }), 
+      });
+    } catch (error) { console.error(error); }
+  }
+};
+
+const syncMeeting = async (meetingId) => {
+  const meetingToSync = meetings.find(m => m.id === meetingId);
+  if (!meetingToSync) return;
+
+  try {
+    await fetch('/api/update-meeting', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(meetingToSync),
+    });
+    console.log(`Reunión ${meetingId} sincronizada.`);
+  } catch (error) {
+    console.error("Error al sincronizar:", error);
+  }
 };
 
 const addSlotToMeeting = (meetingId) => {
-  setMeetings(prev => prev.map(m => {
-    if (m.id === meetingId) {
-      return {
-        ...m,
-        slots: [...m.slots, { id: Date.now(), point: '', conclusion: '' }]
-      };
-    }
-    return m;
-  }));
+  setMeetings(prev => {
+    const newState = prev.map(m => {
+      if (m.id === meetingId) {
+        return {
+          ...m,
+          slots: [...(m.slots || []), { id: Date.now(), point: '', conclusion: '' }]
+        };
+      }
+      return m;
+    });
+    syncMeetingState(newState, meetingId);
+    return newState;
+  });
 };
 
 const updateMeetingSlot = (meetingId, slotId, field, value) => {
@@ -207,18 +325,42 @@ const updateMeetingSlot = (meetingId, slotId, field, value) => {
 };
 
 const updateMeetingData = (id, field, value) => {
-  setMeetings(prev => prev.map(m => 
-    m.id === id ? { ...m, [field]: value } : m
-  ));
+  setMeetings(prev => {
+    const newState = prev.map(m => m.id === id ? { ...m, [field]: value } : m);
+    return newState;
+  });
 };
 
 const updateMeetingPoints = (id, newPoints) => {
   setMeetings(prev => prev.map(m => m.id === id ? { ...m, points: newPoints } : m));
 };
 
-const deleteMeeting = (id) => {
-  setMeetings(prev => prev.filter(m => m.id !== id));
-};
+useEffect(() => {
+  if (isLogged && currentUser?.id) {
+    const fetchData = async () => {
+      try {
+
+        const response = await fetch(`/api/get-data?userId=${currentUser.id}`);
+        
+        if (!response.ok) throw new Error("Error en la API");
+        
+        const data = await response.json();
+        
+        setTasks(data.tasks || []);
+        setNeeds(data.needs || []);
+        setPersonnel(data.personnel || []); 
+        setBlockers(data.blockers || []);
+        setMeetings(data.meetings || []);
+        
+      } catch (error) {
+        console.error("Fallo al conectar con Frankfurt:", error);
+        
+        setTasks([]); setNeeds([]); setPersonnel([]); setBlockers([]); setMeetings([]);
+      }
+    };
+    fetchData();
+  }
+}, [isLogged, currentUser]);
 
 if (!isLogged) return <Login onLogin={handleLogin} />;
 
@@ -283,6 +425,7 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
           onUpdateSlot={updateMeetingSlot}
           onUpdateNotes={(id, val) => updateMeetingData(id, 'notes', val)}
           onDelete={deleteMeeting} 
+          onSync={syncMeeting}
           />
         )}
 

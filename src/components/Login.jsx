@@ -6,14 +6,30 @@ function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [showError, setShowError] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (user === 'admin' && password === '1234') {
-      onLogin(user, password);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setShowError(false);
+
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // Pasamos el ID real que nos dio la base de datos al estado global
+      onLogin(data.userId, data.username); 
     } else {
       setShowError(true);
     }
-  };
+  } catch (error) {
+    console.error("Error en el login:", error);
+    setShowError(true);
+  }
+};
 
   return (
     <div className="auth-container">
