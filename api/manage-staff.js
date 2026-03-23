@@ -16,7 +16,6 @@ export default async function handler(request, response) {
     } 
     
     if (action === 'DELETE') {
-      // Por seguridad, solo borramos si el nombre coincide Y pertenece al usuario
       await sql`
         DELETE FROM personnel 
         WHERE name = ${name} AND user_id = ${userId};

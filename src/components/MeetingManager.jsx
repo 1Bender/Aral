@@ -1,4 +1,3 @@
-import React from 'react';
 import '../index.css'
 
 const MeetingManager = ({ meetings, onUpdatePoints, onAddSlot, onUpdateSlot, onDelete, onSync }) => {

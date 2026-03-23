@@ -6,7 +6,6 @@ export default async function handler(request, response) {
   const { id, notes, completed, archived } = request.body;
 
   try {
-    // Actualizamos dinámicamente según lo que nos llegue
     if (archived !== undefined) {
       await sql`UPDATE tasks SET archived = ${archived} WHERE id = ${id}`;
     } else {

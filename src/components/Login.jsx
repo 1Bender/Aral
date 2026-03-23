@@ -20,7 +20,6 @@ function Login({ onLogin }) {
     const data = await response.json();
 
     if (response.ok && data.success) {
-      // Pasamos el ID real que nos dio la base de datos al estado global
       onLogin(data.userId, data.username); 
     } else {
       setShowError(true);

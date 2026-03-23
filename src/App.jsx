@@ -96,7 +96,7 @@ const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
   const newTask = {
     ...newRow,
     id: `${prefix}-${Math.floor(Math.random() * 900) + 100}`,
-    userId: currentUser.id, // <--- AÑADIDO
+    userId: currentUser.id, 
     completed: false, 
     archived: false   
   };
@@ -118,7 +118,7 @@ const archiveTask = (id) => {
   fetch('/api/update-task', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, userId: currentUser.id, archived: true }), // <--- AÑADIDO userId
+    body: JSON.stringify({ id, userId: currentUser.id, archived: true }), 
   });
 };
 
@@ -186,7 +186,7 @@ const removeStaff = (name) => {
 
 const addNeed = (newNeedData) => {
   const newId = `${newNeedData.type === 'general' ? 'REQ' : 'STF'}-${Date.now().toString().slice(-3)}`;
-  const fullNeed = { ...newNeedData, id: newId, userId: currentUser.id }; // <--- AÑADIDO
+  const fullNeed = { ...newNeedData, id: newId, userId: currentUser.id };
 
   setNeeds(prev => [...prev, fullNeed]);
   setIsNeedModalOpen(false);
@@ -199,10 +199,8 @@ const addNeed = (newNeedData) => {
 };
 
 const deleteNeed = (id) => {
-  // UI Instantánea (dispara la animación de salida en el componente)
   setNeeds(prev => prev.filter(need => need.id !== id));
 
-  // Persistencia de fondo
   fetch('/api/delete-need', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -263,7 +261,7 @@ const deleteMeeting = (id) => {
   fetch('/api/delete-meeting', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, userId: currentUser.id }), // <--- AÑADIDO
+    body: JSON.stringify({ id, userId: currentUser.id }),
   });
 };
 
@@ -394,7 +392,7 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
       <main className="workspace-body">
         {activeSection === 'DASHBOARD' && (
           <TaskManager 
-          tasks={tasks.filter(t => !t.archived)} // Solo enviamos las NO archivadas
+          tasks={tasks.filter(t => !t.archived)}
           onToggleComplete={toggleCompleteTask}
           onReopen={reopenTask}
           onArchive={archiveTask}

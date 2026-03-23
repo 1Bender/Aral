@@ -3,7 +3,6 @@ import { sql } from '@vercel/postgres';
 export default async function handler(request, response) {
   if (request.method !== 'POST') return response.status(405).end();
   
-  // Ahora recibimos el userId desde el cuerpo del mensaje (body)
   const { id, userId, desc, notes, date, priority, type } = request.body;
 
   try {
