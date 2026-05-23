@@ -9,6 +9,7 @@ import MeetingModal from './action_components/MeetingModal';
 import BlockerModal from './action_components/BlockerModal';
 import BlockerManager from './components/BlockerManager';
 import MeetingManager from './components/MeetingManager';
+import NotesManager from './components/NotesManager';
 
 
 const ActionToolbar = ({ section, onOpenTaskModal, onOpenNeedModal, onOpenBlockerModal, onOpenMeetingModal}) => {
@@ -75,6 +76,7 @@ const TASK_SCHEMA = { id: '', desc: '', notes: '', date: '', priority: '', type:
 const NEED_SCHEMA = { id: '', desc: '', category: '', type: '' };
 const BLOCKER_SCHEMA = { id: '', desc: '', category: '', severity: '', owner: '', status: 'open' };
 const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
+const NOTE_SCHEMA = { id: '', title: '', content: '' };
 
   const [currentUser, setCurrentUser] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
@@ -88,6 +90,7 @@ const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
   const [blockers, setBlockers] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [notes, setNotes] = useState([]);
 
 
 
@@ -104,7 +107,7 @@ const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
   setTasks(prev => [...prev, newTask]);
   setIsTaskModalOpen(false);
 
-  fetch('/api/add-task', {
+  fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(newTask),
@@ -115,8 +118,8 @@ const archiveTask = (id) => {
   if (!window.confirm("¿Seguro que quieres archivar esta tarea?")) return;
   setTasks(prev => prev.map(t => t.id === id ? { ...t, archived: true } : t));
 
-  fetch('/api/update-task', {
-    method: 'POST',
+  fetch('/api/tasks', {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, userId: currentUser.id, archived: true }), 
   });
@@ -133,8 +136,8 @@ const toggleCompleteTask = (id, notes = "") => {
     t.id === id ? { ...t, completed: newCompletedStatus, notes: finalNotes } : t
   ));
 
-  fetch('/api/update-task', {
-    method: 'POST',
+  fetch('/api/tasks', {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
       id, 
@@ -191,7 +194,7 @@ const addNeed = (newNeedData) => {
   setNeeds(prev => [...prev, fullNeed]);
   setIsNeedModalOpen(false);
 
-  fetch('/api/add-need', {
+  fetch('/api/needs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullNeed),
@@ -201,8 +204,8 @@ const addNeed = (newNeedData) => {
 const deleteNeed = (id) => {
   setNeeds(prev => prev.filter(need => need.id !== id));
 
-  fetch('/api/delete-need', {
-    method: 'POST',
+  fetch('/api/needs', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),
   });
@@ -215,7 +218,7 @@ const addBlocker = (newBlockerData) => {
   setBlockers(prev => [...prev, fullBlocker]);
   setIsBlockerModalOpen(false);
 
-  fetch('/api/add-blocker', {
+  fetch('/api/blockers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullBlocker),
@@ -227,8 +230,8 @@ const addBlocker = (newBlockerData) => {
 const deleteBlocker = (id) => {
   setBlockers(prev => prev.filter(b => b.id !== id));
 
-  fetch('/api/delete-blocker', {
-    method: 'POST',
+  fetch('/api/blockers', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),
   }).catch(error => {
@@ -247,7 +250,7 @@ const addMeeting = (newMtg) => {
   };
 
   setMeetings(prev => [...prev, fullMtg]);
-  fetch('/api/add-meeting', {
+  fetch('/api/meetings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullMtg),
@@ -258,8 +261,8 @@ const addMeeting = (newMtg) => {
 
 const deleteMeeting = (id) => {
   setMeetings(prev => prev.filter(m => m.id !== id));
-  fetch('/api/delete-meeting', {
-    method: 'POST',
+  fetch('/api/meetings', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, userId: currentUser.id }),
   });
@@ -269,8 +272,8 @@ const syncMeetingState = async (updatedMeetings, meetingId) => {
   const meetingToSync = updatedMeetings.find(m => m.id === meetingId);
   if (meetingToSync) {
     try {
-      await fetch('/api/update-meeting', {
-        method: 'POST',
+      await fetch('/api/meetings', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...meetingToSync, userId: currentUser.id }), 
       });
@@ -283,8 +286,8 @@ const syncMeeting = async (meetingId) => {
   if (!meetingToSync) return;
 
   try {
-    await fetch('/api/update-meeting', {
-      method: 'POST',
+    await fetch('/api/meetings', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(meetingToSync),
     });
@@ -333,6 +336,60 @@ const updateMeetingPoints = (id, newPoints) => {
   setMeetings(prev => prev.map(m => m.id === id ? { ...m, points: newPoints } : m));
 };
 
+/* Notas */
+
+const addNote = async () => {
+  const newNoteData = {
+    id: `NTE-${Date.now().toString().slice(-3)}`,
+    userId: currentUser.id,
+    title: 'Nueva Nota',
+    content: ''
+  };
+
+  // Actualización optimista en local
+  setNotes(prev => [newNoteData, ...prev]);
+
+  try {
+    const res = await fetch('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newNoteData),
+    });
+    const savedNote = await res.json();
+    // Reemplazamos por el objeto real de la base de datos (con su ID incremental real si aplica)
+    setNotes(prev => prev.map(n => n.id === newNoteData.id ? savedNote : n));
+  } catch (error) {
+    console.error("Error al crear nota en Frankfurt:", error);
+  }
+};
+
+const updateNote = async (updatedNote) => {
+  // Sincronización optimista instantánea
+  setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+
+  try {
+    await fetch('/api/notes', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...updatedNote, userId: currentUser.id }),
+    });
+  } catch (error) {
+    console.error("Error al actualizar la nota:", error);
+  }
+};
+
+const deleteNote = async (id) => {
+  setNotes(prev => prev.filter(n => n.id !== id));
+
+  try {
+    await fetch(`/api/notes?id=${id}&userId=${currentUser.id}`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    console.error("Error al borrar nota de Frankfurt:", error);
+  }
+};
+
 useEffect(() => {
   if (isLogged && currentUser?.id) {
     const fetchData = async () => {
@@ -349,6 +406,7 @@ useEffect(() => {
         setPersonnel(data.personnel || []); 
         setBlockers(data.blockers || []);
         setMeetings(data.meetings || []);
+        setNotes(data.notes || []);
         
       } catch (error) {
         console.error("Fallo al conectar con Frankfurt:", error);
@@ -367,17 +425,17 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
       <header className="fixed-header">
         <div className="nav-top">
           <div className="brand" style={{ color: 'var(--accent)', fontWeight: 'bold' }}> ARAL_SYSTEM </div>
-          <nav className="nav-links-group">
-            {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES'].map(sec => (
-              <button 
-                key={sec}
-                className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
-                onClick={() => setActiveSection(sec)}
-              >
-                {sec}
-              </button>
-            ))}
-          </nav>
+            <nav className="nav-links-group">
+              {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES', 'NOTAS'].map(sec => (
+                <button 
+                  key={sec}
+                  className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
+                  onClick={() => setActiveSection(sec)}
+                >
+                  {sec}
+                </button>
+              ))}
+            </nav>
           <button onClick={() => setIsLogged(false)} className="action-btn" style={{ color: '#ff0033' }}>DESCONECTAR</button>
         </div>
 
@@ -424,6 +482,14 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
           onUpdateNotes={(id, val) => updateMeetingData(id, 'notes', val)}
           onDelete={deleteMeeting} 
           onSync={syncMeeting}
+          />
+        )}
+        {activeSection === 'NOTAS' && (
+          <NotesManager 
+            notes={notes}
+            onAddNote={addNote}
+            onUpdateNote={updateNote}
+            onDeleteNote={deleteNote}
           />
         )}
 

@@ -8,12 +8,13 @@ export default async function handler(request, response) {
   }
 
   try {
-    const [tasks, needs, staff, blockers, meetings] = await Promise.all([
+    const [tasks, needs, staff, blockers, meetings, notes] = await Promise.all([
       sql`SELECT * FROM tasks WHERE user_id = ${userId} ORDER BY id ASC;`,
       sql`SELECT * FROM needs WHERE user_id = ${userId} ORDER BY id ASC;`,
       sql`SELECT * FROM personnel WHERE user_id = ${userId} ORDER BY name ASC;`,
       sql`SELECT * FROM blockers WHERE user_id = ${userId} ORDER BY id ASC;`,
-      sql`SELECT * FROM meetings WHERE user_id = ${userId} ORDER BY id ASC;`
+      sql`SELECT * FROM meetings WHERE user_id = ${userId} ORDER BY id ASC;`,
+      sql`SELECT * FROM notes WHERE user_id = ${userId} ORDER BY id ASC;`
     ]);
 
     return response.status(200).json({
@@ -21,9 +22,14 @@ export default async function handler(request, response) {
       needs: needs.rows || [],
       personnel: staff.rows ? staff.rows.map(r => r.name) : [],
       blockers: blockers.rows || [],
-      meetings: meetings.rows || []
+      meetings: meetings.rows || [],
+      notes: notes.rows || []
     });
   } catch (error) {
-    return response.status(500).json({ error: error.message });
+    return response.status(500).json({ 
+      error: "Error en el servidor de Frankfurt", 
+      message: error.message, 
+      stack: error.stack 
+    });
   }
 }
