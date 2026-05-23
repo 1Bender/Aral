@@ -2,12 +2,12 @@
 
 
 :root {
-  --bg-deep: #1d1c1c;
-  --bg-surface: #111111;
+  --bg-deep:#1b2a2c;
+  --bg-surface: #0e1a1b;
   --accent: #d4ff00;
   --accent-glow: rgba(212, 255, 0, 0.3);
   --text-bright: #ebeaea;
-  --text-dim: #666666;
+  --text-dim: #ebeaea;
   --border-glow: #222222;
   --radius-sharp: 2px;
   --priority-low: #475569;      
@@ -15,6 +15,7 @@
   --priority-urgent: #ff0033;   
   --status-ok: #00ff41;
   --status-check: #00f2ff;
+  --bg-header: #1b2a2c;
 }
 
 * {
@@ -198,7 +199,7 @@ form {
 .fixed-header {
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-surface);
+  background-color: var(--bg-header);
   border-bottom: 1px solid var(--border-glow);
   z-index: 100;
 }
@@ -238,7 +239,7 @@ form {
 /* ------------------Cabecera, acciones -----------------------*/
 .nav-actions {
   height: 50px;
-  background-color: #0a0a0a;
+  background-color: var(--bg-surface);
   display: flex;
   align-items: center;
   padding: 0 30px;
@@ -289,14 +290,14 @@ form {
 .task-table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.06);
   table-layout: fixed;
 }
 
 .task-header {
   border-bottom: 1px solid var(--border-glow);
   color: var(--text-dim);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
 }
 
@@ -892,5 +893,196 @@ table.task-table tr.is-completed td.notes-cell {
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
+}
+
+/* Cuadrícula de notas */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Tarjeta Post-it */
+.post-it-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 14px;
+  min-height: 140px;
+  max-height: 200px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.post-it-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.post-it-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+}
+
+.post-it-title-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.95rem;
+  width: 75%;
+}
+
+.post-it-title-input:focus {
+  outline: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.post-it-preview {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 5; /* Limita la vista previa a 5 líneas en la tarjeta */
+  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
+  flex-grow: 1;
+}
+
+/* Estilos del Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #181818;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 90%;
+  max-width: 650px;
+  height: 65vh;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-textarea {
+  flex-grow: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #fff;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: none;
+  line-height: 1.5;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.mtg-title:focus {
+  outline: none;
+  border-bottom-color: var(--accent) !important;
+}
+
+/* Contenedor de la sección completa */
+.notes-section-container {
+  margin-top: 32px;
+}
+
+/* Cabecera inline de notas */
+.notes-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Estado vacío */
+.notes-empty-state {
+  opacity: 0.3;
+  text-align: center;
+  margin: 24px 0;
+}
+
+/* Botón de borrar con padding corregido */
+.btn-delete-note-padding {
+  padding: 2px 8px;
+  margin: 0;
+}
+
+/* Cabecera dentro del modal */
+.modal-header-gap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+/* Input del título dentro del modal */
+.modal-title-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: bold;
+  width: 70%;
+  padding-bottom: 4px;
+}
+
+.modal-title-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent) !important;
+}
+
+/* --- NUEVO: Estilos para el Modal de Confirmación Propio --- */
+.confirm-modal-content {
+  background: #1a1a1a;
+  border: 1px solid #ff4444; /* Borde rojo de advertencia, similar a tus bloqueos */
+  width: 90%;
+  max-width: 400px;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.confirm-modal-text {
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 

@@ -9,6 +9,7 @@ import MeetingModal from './action_components/MeetingModal';
 import BlockerModal from './action_components/BlockerModal';
 import BlockerManager from './components/BlockerManager';
 import MeetingManager from './components/MeetingManager';
+import NotesManager from './components/NotesManager';
 
 
 const ActionToolbar = ({ section, onOpenTaskModal, onOpenNeedModal, onOpenBlockerModal, onOpenMeetingModal}) => {
@@ -75,6 +76,7 @@ const TASK_SCHEMA = { id: '', desc: '', notes: '', date: '', priority: '', type:
 const NEED_SCHEMA = { id: '', desc: '', category: '', type: '' };
 const BLOCKER_SCHEMA = { id: '', desc: '', category: '', severity: '', owner: '', status: 'open' };
 const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
+const NOTE_SCHEMA = { id: '', title: '', content: '' };
 
   const [currentUser, setCurrentUser] = useState(null);
   const [isLogged, setIsLogged] = useState(false);
@@ -88,6 +90,7 @@ const MEETING_SCHEMA = { id: '', title: '', date: '', notes: '', slots: [] };
   const [blockers, setBlockers] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [notes, setNotes] = useState([]);
 
 
 
@@ -333,6 +336,60 @@ const updateMeetingPoints = (id, newPoints) => {
   setMeetings(prev => prev.map(m => m.id === id ? { ...m, points: newPoints } : m));
 };
 
+/* Notas */
+
+const addNote = async () => {
+  const newNoteData = {
+    id: `NTE-${Date.now().toString().slice(-3)}`,
+    userId: currentUser.id,
+    title: 'Nueva Nota',
+    content: ''
+  };
+
+  // Actualización optimista en local
+  setNotes(prev => [newNoteData, ...prev]);
+
+  try {
+    const res = await fetch('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newNoteData),
+    });
+    const savedNote = await res.json();
+    // Reemplazamos por el objeto real de la base de datos (con su ID incremental real si aplica)
+    setNotes(prev => prev.map(n => n.id === newNoteData.id ? savedNote : n));
+  } catch (error) {
+    console.error("Error al crear nota en Frankfurt:", error);
+  }
+};
+
+const updateNote = async (updatedNote) => {
+  // Sincronización optimista instantánea
+  setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+
+  try {
+    await fetch('/api/notes', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...updatedNote, userId: currentUser.id }),
+    });
+  } catch (error) {
+    console.error("Error al actualizar la nota:", error);
+  }
+};
+
+const deleteNote = async (id) => {
+  setNotes(prev => prev.filter(n => n.id !== id));
+
+  try {
+    await fetch(`/api/notes?id=${id}&userId=${currentUser.id}`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    console.error("Error al borrar nota de Frankfurt:", error);
+  }
+};
+
 useEffect(() => {
   if (isLogged && currentUser?.id) {
     const fetchData = async () => {
@@ -349,6 +406,7 @@ useEffect(() => {
         setPersonnel(data.personnel || []); 
         setBlockers(data.blockers || []);
         setMeetings(data.meetings || []);
+        setNotes(data.notes || []);
         
       } catch (error) {
         console.error("Fallo al conectar con Frankfurt:", error);
@@ -367,17 +425,17 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
       <header className="fixed-header">
         <div className="nav-top">
           <div className="brand" style={{ color: 'var(--accent)', fontWeight: 'bold' }}> ARAL_SYSTEM </div>
-          <nav className="nav-links-group">
-            {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES'].map(sec => (
-              <button 
-                key={sec}
-                className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
-                onClick={() => setActiveSection(sec)}
-              >
-                {sec}
-              </button>
-            ))}
-          </nav>
+            <nav className="nav-links-group">
+              {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES', 'NOTAS'].map(sec => (
+                <button 
+                  key={sec}
+                  className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
+                  onClick={() => setActiveSection(sec)}
+                >
+                  {sec}
+                </button>
+              ))}
+            </nav>
           <button onClick={() => setIsLogged(false)} className="action-btn" style={{ color: '#ff0033' }}>DESCONECTAR</button>
         </div>
 
@@ -424,6 +482,14 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
           onUpdateNotes={(id, val) => updateMeetingData(id, 'notes', val)}
           onDelete={deleteMeeting} 
           onSync={syncMeeting}
+          />
+        )}
+        {activeSection === 'NOTAS' && (
+          <NotesManager 
+            notes={notes}
+            onAddNote={addNote}
+            onUpdateNote={updateNote}
+            onDeleteNote={deleteNote}
           />
         )}
 
