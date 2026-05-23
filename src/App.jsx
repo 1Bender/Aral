@@ -107,7 +107,7 @@ const NOTE_SCHEMA = { id: '', title: '', content: '' };
   setTasks(prev => [...prev, newTask]);
   setIsTaskModalOpen(false);
 
-  fetch('/api/add-task', {
+  fetch('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(newTask),
@@ -118,8 +118,8 @@ const archiveTask = (id) => {
   if (!window.confirm("¿Seguro que quieres archivar esta tarea?")) return;
   setTasks(prev => prev.map(t => t.id === id ? { ...t, archived: true } : t));
 
-  fetch('/api/update-task', {
-    method: 'POST',
+  fetch('/api/tasks', {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, userId: currentUser.id, archived: true }), 
   });
@@ -136,8 +136,8 @@ const toggleCompleteTask = (id, notes = "") => {
     t.id === id ? { ...t, completed: newCompletedStatus, notes: finalNotes } : t
   ));
 
-  fetch('/api/update-task', {
-    method: 'POST',
+  fetch('/api/tasks', {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
       id, 
@@ -194,7 +194,7 @@ const addNeed = (newNeedData) => {
   setNeeds(prev => [...prev, fullNeed]);
   setIsNeedModalOpen(false);
 
-  fetch('/api/add-need', {
+  fetch('/api/needs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullNeed),
@@ -204,8 +204,8 @@ const addNeed = (newNeedData) => {
 const deleteNeed = (id) => {
   setNeeds(prev => prev.filter(need => need.id !== id));
 
-  fetch('/api/delete-need', {
-    method: 'POST',
+  fetch('/api/needs', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),
   });
@@ -218,7 +218,7 @@ const addBlocker = (newBlockerData) => {
   setBlockers(prev => [...prev, fullBlocker]);
   setIsBlockerModalOpen(false);
 
-  fetch('/api/add-blocker', {
+  fetch('/api/blockers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullBlocker),
@@ -230,8 +230,8 @@ const addBlocker = (newBlockerData) => {
 const deleteBlocker = (id) => {
   setBlockers(prev => prev.filter(b => b.id !== id));
 
-  fetch('/api/delete-blocker', {
-    method: 'POST',
+  fetch('/api/blockers', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),
   }).catch(error => {
@@ -250,7 +250,7 @@ const addMeeting = (newMtg) => {
   };
 
   setMeetings(prev => [...prev, fullMtg]);
-  fetch('/api/add-meeting', {
+  fetch('/api/meetings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(fullMtg),
@@ -261,8 +261,8 @@ const addMeeting = (newMtg) => {
 
 const deleteMeeting = (id) => {
   setMeetings(prev => prev.filter(m => m.id !== id));
-  fetch('/api/delete-meeting', {
-    method: 'POST',
+  fetch('/api/meetings', {
+    method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, userId: currentUser.id }),
   });
@@ -272,8 +272,8 @@ const syncMeetingState = async (updatedMeetings, meetingId) => {
   const meetingToSync = updatedMeetings.find(m => m.id === meetingId);
   if (meetingToSync) {
     try {
-      await fetch('/api/update-meeting', {
-        method: 'POST',
+      await fetch('/api/meetings', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...meetingToSync, userId: currentUser.id }), 
       });
@@ -286,8 +286,8 @@ const syncMeeting = async (meetingId) => {
   if (!meetingToSync) return;
 
   try {
-    await fetch('/api/update-meeting', {
-      method: 'POST',
+    await fetch('/api/meetings', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(meetingToSync),
     });
