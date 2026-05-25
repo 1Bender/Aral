@@ -13,10 +13,10 @@ const MeetingModal = ({ isOpen, onClose, onSave }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      if (selectedDate < today) {
+     /* if (selectedDate < today) {
         setError('NO SE PUEDEN PLANIFICAR REUNIONES EN EL PASADO');
         return;
-      }
+      }*/
 
       setError('');
       onSave(formData);

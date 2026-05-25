@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import NotebookIllustration from '../assets//NotebookIllustration'
 import '../index.css'
 
 const NotesManager = ({ notes, onAddNote, onUpdateNote, onDeleteNote }) => {
@@ -75,7 +76,7 @@ const NotesManager = ({ notes, onAddNote, onUpdateNote, onDeleteNote }) => {
                 onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
                 placeholder="Introduce un título..."
               />
-              <button className="btn-delete-mtg" onClick={handleCloseAndSave}>GUARDAR Y CERRAR</button>
+              <NotebookIllustration className="modal-vector-art" />
             </div>
             
             <textarea

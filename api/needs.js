@@ -4,7 +4,6 @@ export default async function handler(request, response) {
   const { method, body } = request;
 
   try {
-    // 🟢 CREAR NECESIDAD (Antes api/add-need.js)
     if (method === 'POST') {
       const { id, userId, content, tag, type, assignedTo } = body;
       
@@ -15,7 +14,6 @@ export default async function handler(request, response) {
       return response.status(200).json({ success: true });
     }
 
-    // 🔴 ELIMINAR NECESIDAD (Antes api/delete-need.js)
     if (method === 'DELETE') {
       const { id, userId } = body;
 

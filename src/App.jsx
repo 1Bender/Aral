@@ -1,5 +1,6 @@
 import './index.css'
 import React, { useState, useEffect } from 'react';
+import AralLogo from './assets/AralLogo';
 import Login from './components/Login';
 import TaskManager from './components/TaskManager';
 import TaskModal from './action_components/TaskModal';
@@ -17,50 +18,27 @@ const ActionToolbar = ({ section, onOpenTaskModal, onOpenNeedModal, onOpenBlocke
     switch (section) {
       case 'DASHBOARD':
         return (
-          <>
-            <button 
-              className="action-btn" 
-              style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-              onClick={onOpenTaskModal} 
-            >
-              [+] NUEVA_TAREA
-            </button>
-          </>
+          <button className="action-btn btn-accent" onClick={onOpenTaskModal}>
+            + NUEVA TAREA
+          </button>
         );
       case 'NECESIDADES':
         return (
-          <>
-            <button 
-              className="action-btn" 
-              style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-              onClick={onOpenNeedModal} 
-            >
-              [+] NUEVO_ITEM</button>
-          </>
+          <button className="action-btn btn-accent" onClick={onOpenNeedModal}>
+            + NUEVO ITEM
+          </button>
         );
       case 'BLOQUEOS':
         return (
-          <>
-            <button 
-            className="action-btn" 
-            style={{ borderColor: '#ff4444', color: '#ff4444' }}
-            onClick={onOpenBlockerModal}
-            >
-            [!] REGISTRAR_BLOQUEO
-            </button>
-          </>
+          <button className="action-btn btn-danger" onClick={onOpenBlockerModal}>
+            ! REGISTRAR BLOQUEO
+          </button>
         );
       case 'REUNIONES':
         return (
-          <>
-            <button 
-              className="action-btn" 
-              style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-              onClick={onOpenMeetingModal} 
-            >
-              [+] NUEVA_REUNIÓN
-            </button>
-          </>
+          <button className="action-btn btn-accent" onClick={onOpenMeetingModal}>
+            + NUEVA REUNIÓN
+          </button>
         );
       default:
         return null;
@@ -422,31 +400,51 @@ if (!isLogged) return <Login onLogin={handleLogin} />;
 
   return (
     <div className="app-shell">
-      <header className="fixed-header">
-        <div className="nav-top">
-          <div className="brand" style={{ color: 'var(--accent)', fontWeight: 'bold' }}> ARAL_SYSTEM </div>
-            <nav className="nav-links-group">
-              {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES', 'NOTAS'].map(sec => (
-                <button 
-                  key={sec}
-                  className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
-                  onClick={() => setActiveSection(sec)}
-                >
-                  {sec}
-                </button>
-              ))}
-            </nav>
-          <button onClick={() => setIsLogged(false)} className="action-btn" style={{ color: '#ff0033' }}>DESCONECTAR</button>
-        </div>
+      <header className="fixed-header unifed-layout">
+  
+  {/* Columna Izquierda: Identidad única (Abarcará todo el alto de la cabecera) */}
+  <div className="brand-aside-panel">
+    <div className="brand">
+      <AralLogo className="aral-system-logo" />
+      <span>ARAL_SYSTEM</span>
+    </div>
+  </div>
 
-        <ActionToolbar section={activeSection} 
-        onOpenTaskModal={() => setIsTaskModalOpen(true)}
-        onOpenNeedModal={() => setIsNeedModalOpen(true)}
-        onOpenBlockerModal={() => setIsBlockerModalOpen(true)}
-        onOpenMeetingModal={() => setIsMeetingModalOpen(true)} 
-        />
+  {/* Columna Derecha: Contenedor del Panel de Control (Tus dos filas originales) */}
+  <div className="header-control-hub">
+    
+    {/* Fila Alta (Tu nav-top original intacto) */}
+    <div className="nav-top">
+      <nav className="nav-links-group">
+        {['DASHBOARD', 'NECESIDADES', 'BLOQUEOS', 'REUNIONES', 'NOTAS'].map(sec => (
+          <button 
+            key={sec}
+            className={`nav-link-global ${activeSection === sec ? 'active' : ''}`}
+            onClick={() => setActiveSection(sec)}
+          >
+            {sec}
+          </button>
+        ))}
+      </nav>
+      <button onClick={() => setIsLogged(false)} className="action-btn-logout btn-power" title="DESCONECTAR">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="power-icon">
+    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+    <line x1="12" y1="2" x2="12" y2="12"></line>
+  </svg>
+</button>
+    </div>
 
-      </header>
+    {/* Fila Baja (Tu ActionToolbar original intacto) */}
+    <ActionToolbar 
+      section={activeSection} 
+      onOpenTaskModal={() => setIsTaskModalOpen(true)}
+      onOpenNeedModal={() => setIsNeedModalOpen(true)}
+      onOpenBlockerModal={() => setIsBlockerModalOpen(true)}
+      onOpenMeetingModal={() => setIsMeetingModalOpen(true)} 
+    />
+
+  </div>
+</header>
       <main className="workspace-body">
         {activeSection === 'DASHBOARD' && (
           <TaskManager 
